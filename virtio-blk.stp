@@ -29,19 +29,28 @@
 # You can execute this script as like any other system tap script.
 
 
-probe qemu.kvm.bdrv_*, qemu.kvm.virtio_blk_*, qemu.kvm.paio_*
+probe qemu.system.x86_64.virtio_blk_handle_read
+{
+    printf(" -> virtio_blk_handle_read(%s) \n",  $$parms )
+}
+
+probe qemu.system.x86_64.virtio_blk_handle_write
+{
+    printf(" -> virtio_blk_handle_write(%s) \n",  $$parms )
+}
+
+probe qemu.system_x86_64.bdrv_*,
+      qemu.system_x86_64.paio_*,
+      qemu.system.x86_64.virtio_blk_req_complete,
+      qemu.system.x86_64.virtio_blk_rw_complete
 
 {
-
-
-printf(" \n -> %s(%s) \n ",  probefunc(), $$parms )
-
+        printf(" \n -> %s(%s) \n ",  probefunc(), $$parms )
 }
 
 
 
-
-probe qemu.kvm.virtio_blk_rw_complete
+probe qemu.system.x86_64.virtio_blk_rw_complete
 
 {
 
@@ -50,7 +59,7 @@ probe qemu.kvm.virtio_blk_rw_complete
 	if ( $arg2 )
      	{
 
-            vDevname = @cast(req, "VirtIOBlockReq")->dev->vdev->name$
+	    vDevname = @cast(req, "VirtIOBlockReq")->dev->parent_obj->name$
             
 	    vSerialN = @cast(req, "VirtIOBlockReq")->dev->blk->serial$
             
